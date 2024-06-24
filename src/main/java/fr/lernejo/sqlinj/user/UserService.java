@@ -5,6 +5,8 @@ import fr.lernejo.sqlinj.user.dto.User;
 import fr.lernejo.sqlinj.user.dto.UserDetailsForInscription;
 import fr.lernejo.sqlinj.user.dto.UserEntity;
 import fr.lernejo.sqlinj.user.exception.UnauthorizedUser;
+import org.checkerframework.checker.tainting.qual.Tainted;
+import org.checkerframework.checker.tainting.qual.Untainted;
 import org.springframework.stereotype.Service;
 import org.springframework.util.SerializationUtils;
 
@@ -27,18 +29,35 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    User authenticate(String authorizationHeader) {
-        Optional<User> authenticatedUser = getAuthenticatedUser(authorizationHeader);
+    /**
+     * Returns user information from login attempt
+     * @param  authorizationHeader: base64 encoded auth, should be safe
+     * @return @Tainted User: potentially dangerous user (username, f/n, l/n)
+     */
+    @Tainted User authenticate( String authorizationHeader) {
+        @Tainted Optional<User> authenticatedUser = getAuthenticatedUser(authorizationHeader);
         return authenticatedUser.orElseThrow(() -> new UnauthorizedUser());
     }
 
-    public boolean isAuthenticated(String authorizationHeader) {
+    /**
+     * Returns true if user login is valid (i.e. User exists in repo), false otherwise
+     * @param  authorizationHeader: base64 encoded should be safe?
+     * @return @Tainted boolean: if user login valid
+     */
+    public @Tainted boolean isAuthenticated( String authorizationHeader) {
         return getAuthenticatedUser(authorizationHeader).isPresent();
     }
 
-    Optional<User> getAuthenticatedUser(String authorizationHeader) {
-        LoginAndPassword loginAndPassword = securityService.extractFromHeader(authorizationHeader);
-        Optional<UserEntity> user = userRepository.findUserByLogin(loginAndPassword.login());
+    /**
+     * Processes authorization header and returns user (username, f/n, l/n) if
+     * login attempt valid, otherwise null
+     * @param @Untainted authorizationHeader: base64 encoded, safe?
+     * @return @Tainted Optional<User>: user of login attempt
+     */
+    @Tainted Optional<User> getAuthenticatedUser(@Untainted String authorizationHeader) {
+        @Tainted LoginAndPassword loginAndPassword = securityService.extractFromHeader(authorizationHeader);
+        @Tainted Optional<UserEntity> user = userRepository.findUserByLogin(loginAndPassword.login());
+        // Checks that username exists and attempted password matches stored encoded password for user
         if (user.isPresent() && securityService.match(loginAndPassword.password(), user.get().encodedPassword())) {
             return user.map(this::mapFromEntity);
         } else {
@@ -46,7 +65,12 @@ public class UserService {
         }
     }
 
-    private User mapFromEntity(UserEntity userEntity) {
+    /**
+     * Creates User object from UserEntity object
+     * @param @Tainted userEntity: all user info (login, password, names)
+     * @return @Tainted User: user login (username, f/n, l/n)
+     */
+    private @Tainted User mapFromEntity(@Tainted UserEntity userEntity) {
         return new User(
             userEntity.login(),
             userEntity.firstName(),
@@ -54,8 +78,13 @@ public class UserService {
         );
     }
 
-    User inscription(UserDetailsForInscription userDetailsForInscription) {
-        UserEntity user = userRepository.createUser(mapToEntity(userDetailsForInscription));
+    /**
+     * NO idea what this method does
+     * @param @Tainted userDetailsForInscription: probably unsanitized
+     * @return @Tainted User: probably also unsanitized
+     */
+    @Tainted User inscription(UserDetailsForInscription userDetailsForInscription) {
+        @Tainted UserEntity user = userRepository.createUser(mapToEntity(userDetailsForInscription));
         return mapFromEntity(user);
     }
 
