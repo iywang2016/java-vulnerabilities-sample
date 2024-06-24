@@ -20,12 +20,12 @@ class SecurityService {
 
     /**
      * Decodes authorization header to extract login and password attempt by user.
-     * @param @Untainted authorizationHeader: base64-encoded header, should be safe
-     * @return @Tainted LoginAndPassword: potentially dangerous login and password
+     * @param  authorizationHeader: base64-encoded header, should be safe
+     * @return  LoginAndPassword: potentially dangerous login and password
      */
-    @Tainted LoginAndPassword extractFromHeader(@Untainted String authorizationHeader) {
-        @Tainted String loginAndPassword = new String(Base64.getDecoder().decode(authorizationHeader), StandardCharsets.UTF_8);
-        @Tainted Matcher matcher = BASIC_AUTH_PATTERN.matcher(loginAndPassword);
+     LoginAndPassword extractFromHeader( String authorizationHeader) {
+         String loginAndPassword = new String(Base64.getDecoder().decode(authorizationHeader), StandardCharsets.UTF_8);
+         Matcher matcher = BASIC_AUTH_PATTERN.matcher(loginAndPassword);
 
         if (matcher.matches()) {
             return new LoginAndPassword(matcher.group("login"), matcher.group("password"));
@@ -37,28 +37,28 @@ class SecurityService {
     /**
      * Checks raw password (from login attempt) against encoded password
      * (as stored in user repo. when user created)
-     * @param @Tainted rawPassword: unsanitized password entered by user
-     * @param @Untainted encodedPassword: base64 encoded, should be safe
-     * @return @Tainted boolean: whether raw and encoded passwords match
+     * @param  rawPassword: unsanitized password entered by user
+     * @param  encodedPassword: base64 encoded, should be safe
+     * @return  boolean: whether raw and encoded passwords match
      */
-    @Tainted boolean match(@Tainted String rawPassword, String encodedPassword) {
+     boolean match( String rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 
     /**
      * Encodes raw password entered by user.
-     * @param @Tainted rawPassword: unencoded password, may contain dangerous
+     * @param  rawPassword: unencoded password, may contain dangerous
      * SQL sequences
-     * @return @Untainted String: encoded password, should be temporarily "sanitized"
+     * @return  String: encoded password, should be temporarily "sanitized"
      * due to encoding
      */
-    @Untainted String encodePassword(@Tainted String rawPassword) {
+     String encodePassword( String rawPassword) {
         return sanitize(passwordEncoder.encode(rawPassword));
     }
 
-    @Untainted String sanitize(@Tainted String str) {
+     String sanitize( String str) {
         @SuppressWarnings("tainting")//doesn't actually sanitize, just a placeholder
-        @Untainted String result = str;
+         String result = str;
         return result;
     }
 }

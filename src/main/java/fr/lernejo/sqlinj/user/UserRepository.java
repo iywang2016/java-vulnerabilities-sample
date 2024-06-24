@@ -26,13 +26,13 @@ class UserRepository {
     /**
      * Creates a user in the database from the passed UserEntity record by
      * SQL query.
-     * @param @Tainted userEntity: unsanitized user created by client,
+     * @param  userEntity: unsanitized user created by client,
      * with unsanitized login/password/name
-     * @return @Tainted UserEntity: same userEntity as passed in, not modified
+     * @return  UserEntity: same userEntity as passed in, not modified
      */
-    @Untainted UserEntity createUser(@Tainted UserEntity userEntity) {
+     UserEntity createUser( UserEntity userEntity) {
         try (var connection = dataSource.getConnection();
-             @Untainted Statement statement = connection.createStatement()) {
+              Statement statement = connection.createStatement()) {
             // Unsanitized userEntity info
             statement.execute("INSERT INTO \"user\"(login, encoded_password, first_name, last_name) VALUES ('"
                 + userEntity.login() + "', '"
@@ -49,16 +49,16 @@ class UserRepository {
 
     /**
      * Finds and returns queried UserEntity by login (username) string
-     * @param @Tainted login: unsanitized username from login attempt
-     * @return @Tainted Optional<UserEntity>: returns user to be logged in
+     * @param  login: unsanitized username from login attempt
+     * @return  Optional<UserEntity>: returns user to be logged in
      * or null if login invalid
      * @throws TooManyUsersWithTheSameLogin
      */
-    @Untainted Optional<UserEntity> findUserByLogin(@Tainted String login) throws TooManyUsersWithTheSameLogin {
+     Optional<UserEntity> findUserByLogin( String login) throws TooManyUsersWithTheSameLogin {
         try (var connection = dataSource.getConnection();
-             @Untainted Statement statement = connection.createStatement();
-             @Tainted ResultSet resultSet = statement.executeQuery("SELECT * FROM \"user\" WHERE login = '" + login + "'")) {
-            @Untainted List<UserEntity> users = new ArrayList<>();
+              Statement statement = connection.createStatement();
+              ResultSet resultSet = statement.executeQuery("SELECT * FROM \"user\" WHERE login = '" + login + "'")) {
+             List<UserEntity> users = new ArrayList<>();
             while (resultSet.next()) {
                 users.add(mapToEntity(resultSet));
             }
@@ -75,13 +75,13 @@ class UserRepository {
 
     /**
      * Returns a user from ResultSet results of search query
-     * @param @Tainted resultSet: results of search query
-     * @return @Tainted UserEntity: result contains potentially dangerous
+     * @param  resultSet: results of search query
+     * @return  UserEntity: result contains potentially dangerous
      * user information
      */
-    private @Untainted UserEntity mapToEntity(@Tainted ResultSet resultSet) {
+    private  UserEntity mapToEntity( ResultSet resultSet) {
         try {
-            return new @Tainted UserEntity(
+            return new  UserEntity(
                 resultSet.getString("login"),
                 resultSet.getString("encoded_password"),
                 resultSet.getString("first_name"),

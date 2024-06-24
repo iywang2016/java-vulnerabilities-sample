@@ -25,9 +25,9 @@ public class UserController {
     }
 
     @GetMapping("/api/login")
-    @Untainted User authenticate(@RequestHeader("Authorization") @Untainted String authorizationHeader, @Untainted HttpServletResponse response) {
-        @Tainted User user = userService.authenticate(authorizationHeader);
-        @Untainted String sessionId = UUID.randomUUID().toString();
+     User authenticate(@RequestHeader("Authorization")  String authorizationHeader,  HttpServletResponse response) {
+         User user = userService.authenticate(authorizationHeader);
+         String sessionId = UUID.randomUUID().toString();
         response.addCookie(new Cookie(SESSION_ID_COOKIE_NAME, userService.obfuscate(sessionId)));
         logger.info("Starting session " + sessionId + " for " + user);
         return user;
